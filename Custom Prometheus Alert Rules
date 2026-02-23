@@ -1,0 +1,86 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: application-alerts
+  namespace: monitoring
+  labels:
+    prometheus: kube-prometheus
+spec:
+  groups:
+    - name: application.rules
+      interval: 30s
+      rules:
+        # High Error Rate
+        - alert: HighErrorRate
+          expr: |
+            (
+              sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+              /
+              sum(rate(http_requests_total[5m])) by (service)
+            ) > 0.05
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "High error rate on {{ $labels.service }}"
+            description: "Error rate is {{ $value | humanizePercentage }} (> 5%)"
+        
+        # High Response Time
+        - alert: HighResponseTime
+          expr: |
+            histogram_quantile(0.95,
+              sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
+            ) > 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High response time on {{ $labels.service }}"
+            description: "95th percentile response time is {{ $value }}s"
+        
+        # Pod Crashes
+        - alert: PodCrashLooping
+          expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ $labels.pod }} is crash looping"
+            description: "Pod has restarted {{ $value }} times in last 15 minutes"
+        
+        # High Memory Usage
+        - alert: HighMemoryUsage
+          expr: |
+            (
+              sum(container_memory_working_set_bytes{pod!=""}) by (pod, namespace)
+              /
+              sum(container_spec_memory_limit_bytes{pod!=""}) by (pod, namespace)
+            ) > 0.9
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High memory usage on {{ $labels.pod }}"
+            description: "Memory usage is {{ $value | humanizePercentage }}"
+        
+        # Database Connection Pool
+        - alert: DatabaseConnectionPoolExhausted
+          expr: |
+            hikaricp_connections_active / hikaricp_connections_max > 0.9
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Database connection pool nearly exhausted"
+            description: "{{ $labels.pool }} is at {{ $value | humanizePercentage }} capacity"
+        
+        # API Rate Limiting
+        - alert: RateLimitApproaching
+          expr: |
+            rate(api_requests_total[5m]) > 900
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "API rate limit approaching (1000 req/min limit)"
+            description: "Current rate: {{ $value }} req/min"
