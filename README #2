@@ -1,0 +1,33 @@
+
+---
+
+# **README #2: Monitoring with Prometheus & Grafana**
+
+```markdown
+# Production Monitoring Stack: Prometheus & Grafana on Kubernetes
+
+## 📋 Project Overview
+
+Deployed a comprehensive, production-grade observability platform for Kubernetes clusters using Prometheus for metrics collection, Grafana for visualization, and ELK Stack for log aggregation. This solution provides real-time monitoring, alerting, and troubleshooting capabilities across microservices infrastructure.
+
+## 🎯 Business Challenge
+
+**Client:** Fast-growing SaaS company running 50+ microservices on Kubernetes
+
+**Problems:**
+- **No visibility** into application performance or infrastructure health
+- **Reactive incident management** - problems discovered by customers first
+- **Long MTTR** (Mean Time To Resolution) - average 4+ hours to diagnose issues
+- **Resource waste** - no capacity planning data, leading to over-provisioning
+- **Compliance gaps** - no audit logs or performance metrics for SLA reporting
+
+**Impact:**
+- Frequent production outages (2-3 per week)
+- Customer complaints about performance
+- Engineering team spending 60% time firefighting
+- $50k/month in wasted cloud resources
+- Inability to meet SLA commitments
+
+## 💡 Solution Architecture
+
+### **High-Level Architecture**
