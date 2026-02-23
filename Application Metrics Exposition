@@ -1,0 +1,28 @@
+// Add dependency: micrometer-registry-prometheus
+
+@Configuration
+public class MetricsConfig {
+    
+    @Bean
+    public MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
+        return registry -> registry.config()
+            .commonTags("application", "my-service")
+            .commonTags("environment", System.getenv("ENV"));
+    }
+    
+    // Custom business metrics
+    @Bean
+    public Counter orderCounter(MeterRegistry registry) {
+        return Counter.builder("orders.created")
+            .description("Total orders created")
+            .tag("type", "online")
+            .register(registry);
+    }
+    
+    @Bean
+    public Timer paymentTimer(MeterRegistry registry) {
+        return Timer.builder("payment.processing.time")
+            .description("Payment processing duration")
+            .register(registry);
+    }
+}
